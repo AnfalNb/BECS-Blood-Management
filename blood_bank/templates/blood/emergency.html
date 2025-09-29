@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניפוק חירום - אר"ן - BECS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        header { background: #d32f2f; color: white; padding: 20px; text-align: center; margin-bottom: 30px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { background: #d32f2f; } 50% { background: #c62828; } }
+        .back-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
+        .warning-box { background: #fff3cd; border: 3px solid #ffc107; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .warning-box h3 { color: #856404; margin-bottom: 10px; }
+        .warning-box p { color: #856404; line-height: 1.6; }
+        .emergency-info { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .emergency-info h3 { color: #d32f2f; margin-bottom: 15px; }
+        .emergency-info ul { margin-right: 20px; }
+        .emergency-info li { margin: 10px 0; color: #333; }
+        .btn-emergency { background: #d32f2f; color: white; border: none; padding: 20px 30px; border-radius: 5px; cursor: pointer; font-size: 18px; width: 100%; font-weight: bold; }
+        .btn-emergency:hover { background: #c62828; }
+        .message { padding: 15px; border-radius: 5px; margin-bottom: 20px; display: none; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .inventory-box { background: #ffebee; padding: 20px; border-radius: 8px; text-align: center; }
+        .inventory-box h3 { color: #d32f2f; margin-bottom: 10px; }
+        .inventory-box .count { font-size: 3em; color: #d32f2f; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="back-btn" onclick="location.href='/'">← חזרה לתפריט ראשי</button>
+        <h1>🚨 ניפוק חירום - אירוע רב נפגעים</h1>
+    </header>
+    
+    <div class="container">
+        <div id="message" class="message"></div>
+        
+        <div class="warning-box">
+            <h3>⚠️ אזהרה - מצב חירום</h3>
+            <p>מצב זה מיועד לאירועי רב נפגעים (אר"ן) בלבד. ניפוק דם O- יבוצע עבור כל המלאי הזמין במאגר.</p>
+        </div>
+        
+        <div class="emergency-info">
+            <h3>מדוע רק O- באר"ן?</h3>
+            <ul>
+                <li><strong>תורם אוניברסלי:</strong> O- יכול להינתן לכל סוגי הדם ללא חשש לתגובות חיסוניות</li>
+                <li><strong>חיסכון בזמן:</strong> באירוע רב נפגעים אין זמן לבדיקת סוג דם לכל פצוע</li>
+                <li><strong>הצלת חיים:</strong> מאפשר מתן דם מיידי לכל הנפגעים בו-זמנית</li>
+                <li><strong>השפעה על השגרה:</strong> בשגרה, יש לשמור מלאי מספק של O- ולהעדיף ניפוק של סוגי דם אחרים כאשר אפשרי</li>
+            </ul>
+        </div>
+        
+        <div class="inventory-box">
+            <h3>מלאי O- זמין כעת</h3>
+            <div class="count" id="oNegCount">0</div>
+            <p>מנות</p>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button class="btn-emergency" onclick="emergencyDispense()">🚨 בצע ניפוק חירום - כל המלאי</button>
+        </div>
+    </div>
+    
+    <script>
+        loadONegInventory();
+        
+        async function loadONegInventory() {
+            try {
+                const response = await fetch('/api/inventory/');
+                const inventory = await response.json();
+                document.getElementById('oNegCount').textContent = inventory['O-'] || 0;
+            } catch (error) {
+                console.error('Error loading inventory:', error);
+            }
+        }
+        
+        async function emergencyDispense() {
+            if (!confirm('האם אתה בטוח? פעולה זו תנפק את כל מלאי O- הזמין!')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/emergency/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(`✓ ${result.message}`, 'success');
+                    loadONegInventory();
+                } else {
+                    showMessage(`✗ ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage('שגיאה בתקשורת עם השרת', 'error');
+            }
+        }
+        
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = `message ${type}`;
+            msg.style.display = 'block';
+            setTimeout(() => { msg.style.display = 'none'; }, 5000);
+        }
+    </script>
+</body>
+</html>
