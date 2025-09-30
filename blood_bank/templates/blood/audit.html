@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Trail - BECS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header { background: #1565c0; color: white; padding: 20px; text-align: center; margin-bottom: 30px; }
+        .back-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
+        .filters { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .filters h3 { color: #1565c0; margin-bottom: 15px; }
+        .filter-group { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        select, input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .btn-filter { background: #1565c0; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .btn-filter:hover { background: #0d47a1; }
+        .logs-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .log-table { width: 100%; border-collapse: collapse; }
+        .log-table th { background: #1565c0; color: white; padding: 12px; text-align: right; }
+        .log-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .log-table tr:hover { background: #f5f5f5; }
+        .success { color: #4caf50; font-weight: bold; }
+        .failed { color: #f44336; font-weight: bold; }
+        .loading { text-align: center; padding: 40px; color: #666; }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="back-btn" onclick="location.href='/'">← חזרה לתפריט ראשי</button>
+        <h1>📋 Audit Trail</h1>
+        <p>מעקב אחר כל הפעילויות במערכת</p>
+    </header>
+    
+    <div class="container">
+        <div class="filters">
+            <h3>סינון לוגים</h3>
+            <div class="filter-group">
+                <select id="actionFilter">
+                    <option value="">כל הפעולות</option>
+                    <option value="DONATION_ADDED">קליטת תרומות</option>
+                    <option value="BLOOD_DISPENSED">ניפוק דם</option>
+                    <option value="EMERGENCY_DISPENSED">ניפוק חירום</option>
+                    <option value="DATA_EXPORTED">יצוא נתונים</option>
+                    <option value="RECORD_VIEWED">צפייה ברשומות</option>
+                </select>
+                
+                <select id="limitFilter">
+                    <option value="50">50 אחרונים</option>
+                    <option value="100" selected>100 אחרונים</option>
+                    <option value="200">200 אחרונים</option>
+                    <option value="500">500 אחרונים</option>
+                </select>
+                
+                <button class="btn-filter" onclick="loadLogs()">סנן</button>
+                <button class="btn-filter" onclick="location.reload()">רענן</button>
+            </div>
+        </div>
+        
+        <div class="logs-container">
+            <h3>רשומות Audit Log</h3>
+            <div id="logsContent" class="loading">טוען נתונים...</div>
+        </div>
+    </div>
+    
+    <script>
+        loadLogs();
+        
+        async function loadLogs() {
+            const action = document.getElementById('actionFilter').value;
+            const limit = document.getElementById('limitFilter').value;
+            
+            try {
+                const response = await fetch(`/api/audit-logs/?action=${action}&limit=${limit}`);
+                const data = await response.json();
+                
+                if (data.logs.length === 0) {
+                    document.getElementById('logsContent').innerHTML = '<p style="text-align:center; padding:20px;">אין רשומות להצגה</p>';
+                    return;
+                }
+                
+                let html = '<table class="log-table"><thead><tr>';
+                html += '<th>מזהה</th><th>זמן</th><th>פעולה</th><th>פרטים</th><th>סוג דם</th><th>כמות</th><th>סטטוס</th><th>IP</th>';
+                html += '</tr></thead><tbody>';
+                
+                data.logs.forEach(log => {
+                    html += '<tr>';
+                    html += `<td>${log.id}</td>`;
+                    html += `<td>${log.timestamp}</td>`;
+                    html += `<td><strong>${log.action}</strong></td>`;
+                    html += `<td>${log.details}</td>`;
+                    html += `<td>${log.blood_type}</td>`;
+                    html += `<td>${log.quantity}</td>`;
+                    html += `<td class="${log.success ? 'success' : 'failed'}">${log.success ? '✓ הצליח' : '✗ נכשל'}</td>`;
+                    html += `<td>${log.ip_address}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+                document.getElementById('logsContent').innerHTML = html;
+            } catch (error) {
+                document.getElementById('logsContent').innerHTML = '<p style="color:red; text-align:center;">שגיאה בטעינת נתונים</p>';
+            }
+        }
+    </script>
+</body>
+</html>

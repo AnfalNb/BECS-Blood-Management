@@ -11,12 +11,14 @@
         header { background: #c62828; color: white; padding: 30px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h1 { font-size: 2.5em; margin-bottom: 10px; }
         .subtitle { font-size: 1.2em; opacity: 0.9; }
-        .menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 40px 0; }
+        .version { background: rgba(255,255,255,0.2); display: inline-block; padding: 5px 15px; border-radius: 20px; margin-top: 10px; font-size: 0.9em; }
+        .menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 40px 0; }
         .menu-item { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .menu-item:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .menu-item h2 { color: #c62828; margin-bottom: 15px; font-size: 1.5em; }
         .menu-item p { color: #666; line-height: 1.6; }
         .icon { font-size: 3em; margin-bottom: 15px; }
+        .new-badge { background: #4caf50; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7em; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -24,6 +26,7 @@
         <h1>🩸 BECS</h1>
         <p class="subtitle">Blood Establishment Computer Software</p>
         <p>מערכת ממוחשבת לניהול בנק הדם הלאומי</p>
+        <div class="version">Part 3 - PART 11 Compliant</div>
     </header>
     
     <div class="container">
@@ -44,6 +47,18 @@
                 <div class="icon">🚨</div>
                 <h2>ניפוק חירום - אר"ן</h2>
                 <p>הוצאת מנות O- באירוע רב נפגעים</p>
+            </div>
+            
+            <div class="menu-item" onclick="location.href='/audit/'">
+                <div class="icon">📋</div>
+                <h2><span class="new-badge">NEW</span>Audit Trail</h2>
+                <p>מעקב אחר כל הפעילויות במערכת</p>
+            </div>
+            
+            <div class="menu-item" onclick="location.href='/export/'">
+                <div class="icon">📤</div>
+                <h2><span class="new-badge">NEW</span>יצוא נתונים</h2>
+                <p>יצוא רשומות ולוגים לפורמטים נפוצים</p>
             </div>
         </div>
     </div>

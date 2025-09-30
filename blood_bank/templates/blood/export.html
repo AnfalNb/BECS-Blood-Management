@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>יצוא נתונים - BECS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header { background: #4caf50; color: white; padding: 20px; text-align: center; margin-bottom: 30px; }
+        .back-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
+        .info-box { background: #e8f5e9; border: 2px solid #4caf50; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .info-box h3 { color: #2e7d32; margin-bottom: 10px; }
+        .info-box ul { margin-right: 20px; }
+        .info-box li { margin: 8px 0; color: #2e7d32; }
+        .export-section { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .export-section h3 { color: #4caf50; margin-bottom: 20px; }
+        .export-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .export-btn { background: #4caf50; color: white; border: none; padding: 15px 25px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.3s; text-align: center; text-decoration: none; display: block; }
+        .export-btn:hover { background: #388e3c; }
+        .export-btn.pdf { background: #f44336; }
+        .export-btn.pdf:hover { background: #d32f2f; }
+        .format-icon { font-size: 2em; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="back-btn" onclick="location.href='/'">← חזרה לתפריט ראשי</button>
+        <h1>📤 יצוא נתונים</h1>
+        <p>יצוא רשומות ולוגים לפורמטים נפוצים</p>
+    </header>
+    
+    <div class="container">
+        <div class="info-box">
+            <h3>📋 PART 11 Compliance</h3>
+            <ul>
+                <li><strong>Copies of Records:</strong> המערכת מאפשרת יצוא נתונים לפורמטים נפוצים</li>
+                <li><strong>פורמטים נתמכים:</strong> CSV (Excel), PDF</li>
+                <li><strong>נתונים:</strong> תרומות דם, Audit Logs</li>
+                <li><strong>שימוש:</strong> לחץ על הכפתור המתאים להורדת הקובץ</li>
+            </ul>
+        </div>
+        
+        <div class="export-section">
+            <h3>יצוא תרומות דם</h3>
+            <div class="export-buttons">
+                <a href="/export/donations/csv/" class="export-btn" download>
+                    <div class="format-icon">📊</div>
+                    הורד CSV
+                </a>
+                <a href="/export/donations/pdf/" class="export-btn pdf" download>
+                    <div class="format-icon">📄</div>
+                    הורד PDF
+                </a>
+            </div>
+        </div>
+        
+        <div class="export-section">
+            <h3>יצוא Audit Logs</h3>
+            <div class="export-buttons">
+                <a href="/export/audit/csv/" class="export-btn" download>
+                    <div class="format-icon">📊</div>
+                    הורד CSV
+                </a>
+                <a href="/export/audit/pdf/" class="export-btn pdf" download>
+                    <div class="format-icon">📄</div>
+                    הורד PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
