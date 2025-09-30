@@ -24,6 +24,10 @@
 <body>
     <header>
         <h1>🩸 BECS</h1>
+        <div class="user-info">
+    👤 {{ user.username }} | {{ user.get_role_display }}
+</div>
+        <a href="{% url 'logout' %}" class="logout-btn">התנתק</a>
         <p class="subtitle">Blood Establishment Computer Software</p>
         <p>מערכת ממוחשבת לניהול בנק הדם הלאומי</p>
         <div class="version">Part 3 - PART 11 Compliant</div>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BECS - מערכת ניהול בנק דם</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .hero {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .logo { font-size: 5em; margin-bottom: 20px; }
+        h1 { 
+            color: #c62828; 
+            font-size: 3em; 
+            margin-bottom: 10px;
+        }
+        .subtitle { 
+            color: #666; 
+            font-size: 1.3em; 
+            margin-bottom: 30px;
+        }
+        .description {
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            border-radius: 50px;
+            font-size: 1.3em;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(198, 40, 40, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(198, 40, 40, 0.4);
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        .feature {
+            background: #f5f5f5;
+            padding: 30px 20px;
+            border-radius: 15px;
+        }
+        .feature-icon { font-size: 3em; margin-bottom: 15px; }
+        .feature h3 { color: #c62828; margin-bottom: 10px; }
+        .feature p { color: #666; font-size: 0.95em; }
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .badge {
+            background: #4caf50;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="logo">🩸</div>
+            <h1>BECS</h1>
+            <p class="subtitle">Blood Establishment Computer Software</p>
+            <p class="description">
+                מערכת ממוחשבת מתקדמת לניהול בנק הדם הלאומי<br>
+                תואמת תקני PART 11 ו-HIPAA להגנת מידע רפואי
+            </p>
+            
+            <a href="{% url 'login' %}" class="btn-login">🔐 התחבר למערכת</a>
+            
+            <div class="badges">
+                <span class="badge">✓ PART 11 Compliant</span>
+                <span class="badge">🔒 HIPAA Secure</span>
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">💉</div>
+                <h3>ניהול תרומות</h3>
+                <p>מערכת מתקדמת לקליטה ומעקב אחר תרומות דם</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🏥</div>
+                <h3>ניפוק חכם</h3>
+                <p>ניפוק דם עם המלצות אלטרנטיביות אוטומטיות</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🚨</div>
+                <h3>מצבי חירום</h3>
+                <p>פרוטוקולים מיוחדים לאירועי רב נפגעים</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">📋</div>
+                <h3>Audit Trail</h3>
+                <p>מעקב מלא אחר כל הפעילויות</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🔬</div>
+                <h3>מחקר</h3>
+                <p>גישה לנתונים מוסווים למחקר</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🔐</div>
+                <h3>אבטחה</h3>
+                <p>הגנה מלאה על מידע רפואי רגיש</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

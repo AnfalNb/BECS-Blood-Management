@@ -56,3 +56,35 @@ class AuditLog(models.Model):
     
     def __str__(self):
         return f"{self.timestamp} - {self.get_action_display()}"
+
+
+from django.contrib.auth.models import AbstractUser
+
+class CustomUser(AbstractUser):
+    """משתמש מותאם עם תפקידים"""
+    ROLE_CHOICES = [
+        ('ADMIN', 'אדמין'),
+        ('USER', 'עובד בנק דם'),
+        ('RESEARCHER', 'סטודנט מחקר'),
+    ]
+    
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='USER')
+    phone = models.CharField(max_length=15, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'users'
+    
+    def __str__(self):
+        return f"{self.username} ({self.get_role_display()})"
+    
+    def is_admin(self):
+        return self.role == 'ADMIN'
+    
+    def is_user(self):
+        return self.role == 'USER'
+    
+    def is_researcher(self):
+        return self.role == 'RESEARCHER'
+    
+    

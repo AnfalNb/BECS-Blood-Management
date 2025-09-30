@@ -15,6 +15,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+
     path('', views.index, name='index'),
     path('donation/', views.donation_page, name='donation'),
     path('dispense/', views.dispense_page, name='dispense'),
@@ -34,4 +37,11 @@ urlpatterns = [
     path('export/donations/pdf/', views.export_donations_pdf, name='export_donations_pdf'),
     path('export/audit/csv/', views.export_audit_csv, name='export_audit_csv'),
     path('export/audit/pdf/', views.export_audit_pdf, name='export_audit_pdf'),
+
+    path('admin-users/', views.admin_users_page, name='admin_users'),
+    path('research/', views.research_page, name='research'),
+    path('api/users/', views.get_users, name='get_users'),
+    path('api/users/create/', views.create_user, name='create_user'),
+    path('api/deidentified/', views.get_deidentified_data, name='deidentified_data'),
+    path('export/deidentified/csv/', views.export_deidentified_csv, name='export_deidentified_csv'),
 ]

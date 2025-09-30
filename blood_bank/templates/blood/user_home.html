@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>לוח עבודה - עובד בנק דם</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { 
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            color: white; 
+            padding: 30px; 
+            text-align: center; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .logout-btn { 
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            background: rgba(255,255,255,0.2); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            text-decoration: none; 
+        }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .user-info { 
+            background: rgba(255,255,255,0.2); 
+            display: inline-block; 
+            padding: 8px 20px; 
+            border-radius: 20px; 
+            margin-top: 15px;
+        }
+        .welcome {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .welcome h2 { color: #2196f3; margin-bottom: 15px; }
+        .welcome p { color: #666; line-height: 1.6; }
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .action-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border-top: 4px solid #2196f3;
+        }
+        .action-card:hover { transform: translateY(-5px); }
+        .action-card .icon { font-size: 3.5em; margin-bottom: 15px; }
+        .action-card h3 { color: #2196f3; margin-bottom: 10px; }
+        .action-card p { color: #666; font-size: 0.95em; }
+        .inventory {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .inventory h3 { color: #2196f3; margin-bottom: 20px; }
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        .inventory-item {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .inventory-item strong {
+            display: block;
+            font-size: 1.8em;
+            color: #2196f3;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{% url 'logout' %}" class="logout-btn">התנתק</a>
+        <h1>🏥 לוח עבודה - עובד בנק דם</h1>
+        <div class="user-info">
+            {{ user.get_full_name|default:user.username }} | עובד בנק דם
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="welcome">
+            <h2>שלום, {{ user.get_full_name|default:user.username }}</h2>
+            <p>
+                כעובד בנק דם, אתה יכול לקלוט תרומות דם חדשות, לנפק מנות דם לפי צורך, 
+                ולבצע ניפוק חירום במצבי אר"ן. יש לך גישה למידע מלא על התורמים.
+            </p>
+        </div>
+        
+        <div class="quick-actions">
+            <div class="action-card" onclick="location.href='/donation/'">
+                <div class="icon">💉</div>
+                <h3>קליטת תרומה</h3>
+                <p>רישום תורם חדש</p>
+            </div>
+            
+            <div class="action-card" onclick="location.href='/dispense/'">
+                <div class="icon">🏥</div>
+                <h3>ניפוק דם</h3>
+                <p>הוצאת מנות</p>
+            </div>
+            
+            <div class="action-card" onclick="location.href='/emergency/'">
+                <div class="icon">🚨</div>
+                <h3>ניפוק חירום</h3>
+                <p>אירוע רב נפגעים</p>
+            </div>
+            
+            <!-- <div class="action-card" onclick="location.href='/audit/'">
+                <div class="icon">📋</div>
+                <h3>Audit Trail</h3>
+                <p>צפייה בלוגים</p>
+            </div> -->
+        </div>
+        
+        <div class="inventory">
+            <h3>מלאי נוכחי</h3>
+            <div id="inventory" class="inventory-grid"></div>
+        </div>
+    </div>
+    
+    <script>
+        async function loadInventory() {
+            try {
+                const response = await fetch('/api/inventory/');
+                const inventory = await response.json();
+                
+                let html = '';
+                for (const [type, count] of Object.entries(inventory)) {
+                    html += `<div class="inventory-item"><strong>${type}</strong><span>${count} מנות</span></div>`;
+                }
+                document.getElementById('inventory').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading inventory');
+            }
+        }
+        
+        loadInventory();
+        setInterval(loadInventory, 30000);
+    </script>
+</body>
+</html>
