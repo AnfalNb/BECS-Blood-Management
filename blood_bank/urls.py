@@ -13,6 +13,7 @@
 # ]
 from django.urls import path
 from . import views
+from . import chatbot_views
 
 urlpatterns = [
     path('login/', views.login_view, name='login'),
@@ -44,4 +45,30 @@ urlpatterns = [
     path('api/users/create/', views.create_user, name='create_user'),
     path('api/deidentified/', views.get_deidentified_data, name='deidentified_data'),
     path('export/deidentified/csv/', views.export_deidentified_csv, name='export_deidentified_csv'),
+
+    path('donations-list/', views.donations_list, name='donations_list'),
+    path('api/search-donations/', views.search_donations, name='search_donations'),
+    path('api/export-search/', views.export_search_results, name='export_search_results'),
+
+
+    path('expiration-tracking/', views.expiration_tracking, name='expiration_tracking'),
+    path('api/expiration-data/', views.get_expiration_data, name='expiration_data'),
+    path('api/mark-expired/', views.mark_as_expired, name='mark_expired'),
+    path('api/batch-remove-expired/', views.batch_remove_expired, name='batch_remove_expired'),
+    path('export/expiration-report/', views.export_expiration_report, name='export_expiration_report'),
+
+
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('api/dashboard-data/', views.get_dashboard_data, name='dashboard_data'),
+
+
+    path('reports/', views.reports_generator, name='reports_generator'),
+    path('api/generate-report/', views.generate_custom_report, name='generate_report'),
+
+
+
+    path('chatbot/', chatbot_views.chatbot_page, name='chatbot'),
+    path('api/chatbot/send/', chatbot_views.chatbot_send_message, name='chatbot_send_message'),
+    path('api/chatbot/suggestions/', chatbot_views.chatbot_get_suggestions, name='chatbot_suggestions'),
 ]
+

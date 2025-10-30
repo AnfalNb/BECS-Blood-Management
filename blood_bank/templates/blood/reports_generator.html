@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מחולל דוחות - BECS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white; padding: 20px; text-align: center; margin-bottom: 30px; border-radius: 8px; }
+        .back-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: inline-block; }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
+        
+        .form-panel { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-panel h3 { color: #4caf50; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; color: #333; margin-bottom: 8px; }
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #4caf50; }
+        
+        .checkbox-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+        .checkbox-item { display: flex; align-items: center; gap: 8px; }
+        .checkbox-item input { width: auto; }
+        
+        .report-types { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .report-type-card { border: 2px solid #ddd; padding: 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s; text-align: center; }
+        .report-type-card:hover { border-color: #4caf50; background: #f1f8f4; }
+        .report-type-card.selected { border-color: #4caf50; background: #e8f5e9; }
+        .report-type-card .icon { font-size: 3em; margin-bottom: 10px; }
+        .report-type-card h4 { color: #4caf50; margin-bottom: 8px; }
+        .report-type-card p { color: #666; font-size: 0.9em; }
+        
+        .format-selector { display: flex; gap: 15px; margin-top: 10px; }
+        .format-btn { flex: 1; padding: 15px; border: 2px solid #ddd; background: white; border-radius: 8px; cursor: pointer; transition: all 0.3s; text-align: center; }
+        .format-btn:hover { border-color: #4caf50; }
+        .format-btn.selected { border-color: #4caf50; background: #e8f5e9; }
+        .format-btn .icon { font-size: 2em; display: block; margin-bottom: 8px; }
+        
+        .generate-btn { background: #4caf50; color: white; border: none; padding: 15px 40px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: all 0.3s; }
+        .generate-btn:hover { background: #388e3c; transform: translateY(-2px); }
+        
+        .preview-panel { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .preview-panel h3 { color: #4caf50; margin-bottom: 20px; }
+        .preview-info { background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .preview-info strong { color: #4caf50; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="back-btn">← חזרה לתפריט ראשי</a>
+        <h1>📑 מחולל דוחות מתקדם</h1>
+        <p>יצירת דוחות מותאמים אישית</p>
+    </header>
+    
+    <div class="container">
+        <div class="form-panel">
+            <h3>1️⃣ בחר סוג דוח</h3>
+            <div class="report-types">
+                <div class="report-type-card selected" onclick="selectReportType('inventory')">
+                    <div class="icon">📊</div>
+                    <h4>דוח מלאי</h4>
+                    <p>ניתוח מלאי נוכחי לפי סוג דם</p>
+                </div>
+                
+                <div class="report-type-card" onclick="selectReportType('donations')">
+                    <div class="icon">💉</div>
+                    <h4>דוח תרומות</h4>
+                    <p>רשימה מפורטת של תרומות</p>
+                </div>
+                
+                <div class="report-type-card" onclick="selectReportType('expiration')">
+                    <div class="icon">⏰</div>
+                    <h4>דוח תפוגה</h4>
+                    <p>ניתוח תוקף מנות דם</p>
+                </div>
+                
+                <div class="report-type-card" onclick="selectReportType('summary')">
+                    <div class="icon">📋</div>
+                    <h4>דוח סיכום</h4>
+                    <p>סקירה מקיפה של כל הנתונים</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-panel">
+            <h3>2️⃣ הגדר פרמטרים</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>מתאריך:</label>
+                    <input type="date" id="dateFrom">
+                </div>
+                
+                <div class="form-group">
+                    <label>עד תאריך:</label>
+                    <input type="date" id="dateTo">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>סינון לפי סוגי דם (אופציונלי):</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="type_a_plus" value="A+">
+                        <label for="type_a_plus">A+</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="type_o_plus" value="O+">
+                        <label for="type_o_plus">O+</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="type_b_plus" value="B+">
+                        <label for="type_b_plus">B+</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="type_ab_plus" value="AB+">
+                        <label for="type_ab_plus">AB+</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="type_a_minus" value="A-">
+                        <label for="type_a_minus">A-</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="type_o_minus" value="O-">
+                        <label for="type_o_minus">O-</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="type_b_minus" value="B-">
+                        <label for="type_b_minus">B-</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="type_ab_minus" value="AB-">
+                        <label for="type_ab_minus">AB-</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="includeCharts" checked style="width: auto; margin-left: 8px;">
+                    כלול גרפים (רק PDF)
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-panel">
+            <h3>3️⃣ בחר פורמט</h3>
+            <div class="format-selector">
+                <div class="format-btn selected" onclick="selectFormat('pdf')" id="format-pdf">
+                    <span class="icon">📄</span>
+                    <strong>PDF</strong>
+                    <p style="font-size:0.85em; color:#666; margin-top: 5px;">דוח מעוצב עם טבלאות וגרפים</p>
+                </div>
+                
+                <div class="format-btn" onclick="selectFormat('csv')" id="format-csv">
+                    <span class="icon">📊</span>
+                    <strong>CSV</strong>
+                    <p style="font-size:0.85em; color:#666; margin-top: 5px;">נתונים גולמיים לאקסל</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-panel">
+            <button class="generate-btn" onclick="generateReport()">🚀 צור דוח</button>
+        </div>
+        
+        <div class="preview-panel">
+            <h3>📋 תצוגה מקדימה</h3>
+            <div class="preview-info">
+                <strong>סוג דוח:</strong> <span id="previewType">דוח מלאי</span><br>
+                <strong>פורמט:</strong> <span id="previewFormat">PDF</span><br>
+                <strong>טווח תאריכים:</strong> <span id="previewDates">כל התאריכים</span><br>
+                <strong>סינון:</strong> <span id="previewFilter">כל סוגי הדם</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let selectedReportType = 'inventory';
+        let selectedFormat = 'pdf';
+        
+        // ברירת מחדל - תאריכים (חודש אחרון)
+        const today = new Date();
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        
+        document.getElementById('dateFrom').value = monthAgo.toISOString().split('T')[0];
+        document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+        
+        updatePreview();
+        
+        function selectReportType(type) {
+            selectedReportType = type;
+            
+            // עדכון UI
+            document.querySelectorAll('.report-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.report-type-card').classList.add('selected');
+            
+            updatePreview();
+        }
+        
+        function selectFormat(format) {
+            selectedFormat = format;
+            
+            // עדכון UI
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById(`format-${format}`).classList.add('selected');
+            
+            // הסתרת checkbox של גרפים אם CSV
+            const chartsCheckbox = document.getElementById('includeCharts').parentElement;
+            if (format === 'csv') {
+                chartsCheckbox.style.opacity = '0.5';
+                document.getElementById('includeCharts').disabled = true;
+            } else {
+                chartsCheckbox.style.opacity = '1';
+                document.getElementById('includeCharts').disabled = false;
+            }
+            
+            updatePreview();
+        }
+        
+        function updatePreview() {
+            const reportNames = {
+                'inventory': 'דוח מלאי',
+                'donations': 'דוח תרומות',
+                'expiration': 'דוח תפוגה',
+                'summary': 'דוח סיכום'
+            };
+            
+            document.getElementById('previewType').textContent = reportNames[selectedReportType] || 'לא נבחר';
+            document.getElementById('previewFormat').textContent = selectedFormat.toUpperCase();
+            
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            if (dateFrom && dateTo) {
+                document.getElementById('previewDates').textContent = `${dateFrom} עד ${dateTo}`;
+            } else {
+                document.getElementById('previewDates').textContent = 'כל התאריכים';
+            }
+            
+            const selectedTypes = Array.from(document.querySelectorAll('.checkbox-item input:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedTypes.length > 0) {
+                document.getElementById('previewFilter').textContent = selectedTypes.join(', ');
+            } else {
+                document.getElementById('previewFilter').textContent = 'כל סוגי הדם';
+            }
+        }
+        
+        // עדכון תצוגה מקדימה בכל שינוי
+        document.getElementById('dateFrom').addEventListener('change', updatePreview);
+        document.getElementById('dateTo').addEventListener('change', updatePreview);
+        document.querySelectorAll('.checkbox-item input').forEach(cb => {
+            cb.addEventListener('change', updatePreview);
+        });
+        
+        function generateReport() {
+            const params = new URLSearchParams({
+                type: selectedReportType,
+                date_from: document.getElementById('dateFrom').value,
+                date_to: document.getElementById('dateTo').value,
+                include_charts: document.getElementById('includeCharts').checked,
+                format: selectedFormat
+            });
+            
+            // הוספת סוגי דם שנבחרו
+            const selectedTypes = Array.from(document.querySelectorAll('.checkbox-item input:checked'))
+                .map(cb => cb.value);
+            
+            selectedTypes.forEach(type => {
+                params.append('blood_types[]', type);
+            });
+            
+            // הורדת הדוח
+            window.location.href = `/api/generate-report/?${params.toString()}`;
+        }
+    </script>
+</body>
+</html>

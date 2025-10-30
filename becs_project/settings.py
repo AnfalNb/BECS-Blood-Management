@@ -27,7 +27,64 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# הוסף ל-settings.py
 
+import os
+from dotenv import load_dotenv
+
+# טען משתני סביבה
+load_dotenv()
+
+# DeepSeek API Configuration
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', 'your pass')
+
+# אם אתה רוצה להשתמש ב-DeepSeek דרך OpenAI compatible endpoint:
+# DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+# או אם יש לך self-hosted:
+# DEEPSEEK_API_URL = "http://your-server:8000/v1/chat/completions"
+
+# Chatbot Settings
+CHATBOT_SETTINGS = {
+    'MAX_TOKENS': 500,
+    'TEMPERATURE': 0.7,
+    'TIMEOUT': 30,  # seconds
+    'CACHE_TIMEOUT': 300,  # 5 minutes for caching responses
+    'MAX_CONVERSATION_LENGTH': 20,  # messages to keep in history
+}
+
+# אם רוצה WebSocket support:
+ASGI_APPLICATION = 'becs_project.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        # או עם Redis:
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #     "hosts": [('127.0.0.1', 6379)],
+        # },
+    },
+}
+
+# Logging for chatbot
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'chatbot.log',
+        },
+    },
+    'loggers': {
+        'blood_bank.deepseek_service': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
 # Application definition
 
 INSTALLED_APPS = [

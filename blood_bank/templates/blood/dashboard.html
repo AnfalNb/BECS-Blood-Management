@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BECS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1800px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; margin-bottom: 30px; border-radius: 8px; position: relative; }
+        .back-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
+        .refresh-btn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .refresh-btn:hover { background: rgba(255,255,255,0.3); }
+        
+        /* KPIs */
+        .kpis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .kpi-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; border-top: 4px solid; }
+        .kpi-card h3 { font-size: 2.5em; margin-bottom: 10px; }
+        .kpi-card p { color: #666; font-size: 0.95em; }
+        .kpi-primary { border-color: #667eea; }
+        .kpi-primary h3 { color: #667eea; }
+        .kpi-success { border-color: #4caf50; }
+        .kpi-success h3 { color: #4caf50; }
+        .kpi-warning { border-color: #ff9800; }
+        .kpi-warning h3 { color: #ff9800; }
+        .kpi-danger { border-color: #f44336; }
+        .kpi-danger h3 { color: #f44336; }
+        
+        /* Charts Grid */
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .chart-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .chart-card h3 { color: #667eea; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
+        .chart-container { position: relative; height: 300px; }
+        
+        /* Full Width Charts */
+        .chart-full { grid-column: 1 / -1; }
+        
+        /* Top Donors */
+        .top-donors { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .top-donors h3 { color: #667eea; margin-bottom: 20px; }
+        .donor-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 10px; background: #f9f9f9; border-radius: 8px; border-right: 4px solid #667eea; }
+        .donor-info { display: flex; align-items: center; gap: 15px; }
+        .donor-rank { background: #667eea; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .donor-name { font-weight: bold; }
+        .donor-count { background: #4caf50; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+        
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: #666; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="back-btn">← חזרה</a>
+        <button class="refresh-btn" onclick="loadDashboard()">🔄 רענן</button>
+        <h1>📊 Dashboard & Analytics</h1>
+        <p>לוח בקרה מרכזי - ניתוח נתונים בזמן אמת</p>
+    </header>
+    
+    <div class="container">
+        <!-- KPIs -->
+        <div class="kpis-grid">
+            <div class="kpi-card kpi-primary">
+                <h3 id="kpiTotal">0</h3>
+                <p>סך תרומות</p>
+            </div>
+            <div class="kpi-card kpi-success">
+                <h3 id="kpiAvailable">0</h3>
+                <p>מנות זמינות</p>
+            </div>
+            <div class="kpi-card kpi-warning">
+                <h3 id="kpiDispensed">0</h3>
+                <p>מנות נוצלו</p>
+            </div>
+            <div class="kpi-card kpi-primary">
+                <h3 id="kpiLastMonth">0</h3>
+                <p>תרומות 30 יום</p>
+            </div>
+            <div class="kpi-card kpi-warning">
+                <h3 id="kpiExpiring">0</h3>
+                <p>קרוב לפקיעה</p>
+            </div>
+            <div class="kpi-card kpi-danger">
+                <h3 id="kpiExpired">0</h3>
+                <p>פג תוקף</p>
+            </div>
+            <div class="kpi-card kpi-success">
+                <h3 id="kpiUtilization">0%</h3>
+                <p>אחוז ניצול</p>
+            </div>
+        </div>
+        
+        <!-- Top Donors (only for Admin/User) -->
+        <div id="topDonorsSection" style="display: none;">
+            <div class="top-donors">
+                <h3>🏆 5 התורמים המובילים</h3>
+                <div id="topDonorsList"></div>
+            </div>
+        </div>
+        
+        <!-- Charts -->
+        <div class="charts-grid">
+            <!-- Inventory by Blood Type -->
+            <div class="chart-card">
+                <h3>📊 מלאי נוכחי לפי סוג דם</h3>
+                <div class="chart-container">
+                    <canvas id="inventoryChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Expiration Status -->
+            <div class="chart-card">
+                <h3>⏰ סטטוס תפוגה</h3>
+                <div class="chart-container">
+                    <canvas id="expirationChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Monthly Trend -->
+            <div class="chart-card chart-full">
+                <h3>📈 מגמות תרומות - 12 חודשים אחרונים</h3>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Daily Activity -->
+            <div class="chart-card">
+                <h3>📅 פעילות 7 ימים אחרונים</h3>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Utilization by Type -->
+            <div class="chart-card">
+                <h3>🎯 אחוז ניצול לפי סוג דם</h3>
+                <div class="chart-container">
+                    <canvas id="utilizationChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Donations vs Dispensed -->
+            <div class="chart-card chart-full">
+                <h3>📊 תרומות מול ניפוקים לפי סוג דם</h3>
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let charts = {};
+        
+        loadDashboard();
+        setInterval(loadDashboard, 300000); // רענון כל 5 דקות
+        
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/dashboard-data/');
+                const data = await response.json();
+                
+                updateKPIs(data.kpis);
+                updateTopDonors(data.top_donors);
+                createCharts(data);
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        function updateKPIs(kpis) {
+            document.getElementById('kpiTotal').textContent = kpis.total_donations;
+            document.getElementById('kpiAvailable').textContent = kpis.available_units;
+            document.getElementById('kpiDispensed').textContent = kpis.dispensed_units;
+            document.getElementById('kpiLastMonth').textContent = kpis.donations_last_month;
+            document.getElementById('kpiExpiring').textContent = kpis.expiring_soon;
+            document.getElementById('kpiExpired').textContent = kpis.expired;
+            document.getElementById('kpiUtilization').textContent = kpis.utilization_rate + '%';
+        }
+        
+        function updateTopDonors(donors) {
+            if (donors.length === 0) return;
+            
+            document.getElementById('topDonorsSection').style.display = 'block';
+            const container = document.getElementById('topDonorsList');
+            
+            let html = '';
+            donors.forEach((donor, index) => {
+                html += `
+                    <div class="donor-item">
+                        <div class="donor-info">
+                            <div class="donor-rank">${index + 1}</div>
+                            <div>
+                                <div class="donor-name">${donor.name}</div>
+                                <div style="color:#666; font-size:0.9em">ת"ז: ${donor.donor_id}</div>
+                            </div>
+                        </div>
+                        <div class="donor-count">${donor.count} תרומות</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function createCharts(data) {
+            // Inventory Chart
+            createOrUpdateChart('inventoryChart', 'bar', {
+                labels: Object.keys(data.inventory_by_type),
+                datasets: [{
+                    label: 'מנות זמינות',
+                    data: Object.values(data.inventory_by_type),
+                    backgroundColor: ['#f44336', '#ff9800', '#4caf50', '#2196f3', '#9c27b0', '#e91e63', '#00bcd4', '#ff5722']
+                }]
+            }, {
+                indexAxis: 'y',
+                scales: { x: { beginAtZero: true } }
+            });
+            
+            // Expiration Chart
+            createOrUpdateChart('expirationChart', 'doughnut', {
+                labels: ['תקין (14+ ימים)', 'אזהרה (7-14 ימים)', 'קריטי (0-7 ימים)', 'פג תוקף'],
+                datasets: [{
+                    data: [
+                        data.expiration_status.ok,
+                        data.expiration_status.warning,
+                        data.expiration_status.critical,
+                        data.expiration_status.expired
+                    ],
+                    backgroundColor: ['#4caf50', '#ffc107', '#ff9800', '#f44336']
+                }]
+            });
+            
+            // Trend Chart
+            createOrUpdateChart('trendChart', 'line', {
+                labels: data.monthly_trend.map(item => item.month),
+                datasets: [{
+                    label: 'תרומות',
+                    data: data.monthly_trend.map(item => item.count),
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            }, {
+                scales: { y: { beginAtZero: true } }
+            });
+            
+            // Activity Chart
+            createOrUpdateChart('activityChart', 'bar', {
+                labels: data.daily_activity.map(item => item.date),
+                datasets: [
+                    {
+                        label: 'תרומות',
+                        data: data.daily_activity.map(item => item.donations),
+                        backgroundColor: '#4caf50'
+                    },
+                    {
+                        label: 'ניפוקים',
+                        data: data.daily_activity.map(item => item.dispensed),
+                        backgroundColor: '#ff9800'
+                    }
+                ]
+            }, {
+                scales: { y: { beginAtZero: true } }
+            });
+            
+            // Utilization Chart
+            createOrUpdateChart('utilizationChart', 'bar', {
+                labels: Object.keys(data.utilization_by_type),
+                datasets: [{
+                    label: 'אחוז ניצול (%)',
+                    data: Object.values(data.utilization_by_type),
+                    backgroundColor: '#2196f3'
+                }]
+            }, {
+                scales: { 
+                    y: { 
+                        beginAtZero: true,
+                        max: 100
+                    } 
+                }
+            });
+            
+            // Comparison Chart
+            createOrUpdateChart('comparisonChart', 'bar', {
+                labels: Object.keys(data.donations_by_blood_type),
+                datasets: [
+                    {
+                        label: 'סך תרומות',
+                        data: Object.values(data.donations_by_blood_type),
+                        backgroundColor: '#4caf50'
+                    },
+                    {
+                        label: 'נוצלו',
+                        data: Object.values(data.dispensed_by_blood_type),
+                        backgroundColor: '#ff9800'
+                    }
+                ]
+            }, {
+                scales: { y: { beginAtZero: true } }
+            });
+        }
+        
+        function createOrUpdateChart(canvasId, type, data, options = {}) {
+            const ctx = document.getElementById(canvasId);
+            
+            if (charts[canvasId]) {
+                charts[canvasId].data = data;
+                charts[canvasId].update();
+            } else {
+                charts[canvasId] = new Chart(ctx, {
+                    type: type,
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        ...options
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

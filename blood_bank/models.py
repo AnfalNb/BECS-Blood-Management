@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.validators import RegexValidator
 
+from django.utils import timezone
+from datetime import timedelta
 class BloodDonation(models.Model):
     BLOOD_TYPES = [
         ('A+', 'A+'), ('O+', 'O+'), ('B+', 'B+'), ('AB+', 'AB+'),
@@ -16,13 +18,49 @@ class BloodDonation(models.Model):
     donor_name = models.CharField(max_length=200)
     is_available = models.BooleanField(default=True)
     
+    # שדה חדש - תאריך תפוגה
+    expiration_date = models.DateField(null=True, blank=True)
+    
     class Meta:
         db_table = 'blood_donations'
         ordering = ['donation_date']
     
+    def save(self, *args, **kwargs):
+        """חישוב אוטומטי של תאריך תפוגה (35 יום מהתרומה)"""
+        if not self.expiration_date and self.donation_date:
+            self.expiration_date = self.donation_date + timedelta(days=35)
+        super().save(*args, **kwargs)
+    
+    def days_until_expiry(self):
+        """כמה ימים נשארו עד התפוגה"""
+        if not self.expiration_date:
+            return None
+        delta = self.expiration_date - timezone.now().date()
+        return delta.days
+    
+    def is_expired(self):
+        """האם המנה פגה"""
+        if not self.expiration_date:
+            return False
+        return timezone.now().date() > self.expiration_date
+    
+    def is_expiring_soon(self, days=7):
+        """האם המנה תפוג בקרוב"""
+        days_left = self.days_until_expiry()
+        if days_left is None:
+            return False
+        return 0 <= days_left <= days
+    
+    def expiration_status(self):
+        """סטטוס תפוגה: expired, expiring_soon, ok"""
+        if self.is_expired():
+            return 'expired'
+        elif self.is_expiring_soon():
+            return 'expiring_soon'
+        return 'ok'
+    
     def __str__(self):
         return f"{self.blood_type} - {self.donor_name} - {self.donation_date}"
-
 
 class AuditLog(models.Model):
     """
@@ -35,6 +73,9 @@ class AuditLog(models.Model):
         ('DATA_EXPORTED', 'יצוא נתונים'),
         ('RECORD_VIEWED', 'צפייה ברשומה'),
         ('INVENTORY_CHECKED', 'בדיקת מלאי'),
+        ('SEARCH_PERFORMED', 'ביצוע חיפוש'),  
+        ('BLOOD_EXPIRED', 'סימון מנה כפגה'),  
+        ('BATCH_EXPIRED', 'הסרת מנות פגות'), 
     ]
     
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)

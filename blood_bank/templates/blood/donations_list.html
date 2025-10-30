@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>רשימת תרומות - BECS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white; padding: 20px; text-align: center; margin-bottom: 30px; border-radius: 8px; }
+        .back-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: inline-block; }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
+        
+        .search-panel { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .search-panel h3 { color: #4caf50; margin-bottom: 20px; }
+        .search-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; color: #333; margin-bottom: 5px; font-size: 0.9em; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #4caf50; }
+        
+        .action-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn { padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; transition: all 0.3s; }
+        .btn-search { background: #4caf50; color: white; }
+        .btn-search:hover { background: #388e3c; }
+        .btn-reset { background: #9e9e9e; color: white; }
+        .btn-reset:hover { background: #757575; }
+        .btn-export { background: #2196f3; color: white; }
+        .btn-export:hover { background: #1976d2; }
+        
+        .results-panel { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .results-header h3 { color: #4caf50; }
+        .results-count { color: #666; font-size: 0.95em; }
+        
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #4caf50; color: white; padding: 12px; text-align: right; font-weight: bold; position: sticky; top: 0; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f5f5f5; }
+        .badge { padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: bold; }
+        .badge-available { background: #c8e6c9; color: #2e7d32; }
+        .badge-used { background: #ffcdd2; color: #c62828; }
+        .blood-type { font-weight: bold; color: #c62828; }
+        
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; }
+        .pagination button { padding: 8px 15px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer; }
+        .pagination button:hover:not(:disabled) { background: #4caf50; color: white; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination .page-info { color: #666; }
+        
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .no-results { text-align: center; padding: 40px; color: #999; }
+        
+        .sort-btn { background: none; border: none; color: white; cursor: pointer; margin-right: 5px; }
+        .sort-btn:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="back-btn">← חזרה לתפריט ראשי</a>
+        <h1>📋 רשימת תרומות דם</h1>
+        <p>חיפוש וסינון מתקדם</p>
+    </header>
+    
+    <div class="container">
+        <!-- פאנל חיפוש -->
+        <div class="search-panel">
+            <h3>🔍 חיפוש וסינון</h3>
+            
+            <div class="search-row">
+                <div class="form-group">
+                    <label>חיפוש חופשי:</label>
+                    <input type="text" id="searchQuery" placeholder="שם, ת&quot;ז, או סוג דם...">
+                </div>
+                
+                <div class="form-group">
+                    <label>סוג דם:</label>
+                    <select id="bloodTypeFilter">
+                        <option value="">הכל</option>
+                        <option value="A+">A+</option>
+                        <option value="O+">O+</option>
+                        <option value="B+">B+</option>
+                        <option value="AB+">AB+</option>
+                        <option value="A-">A-</option>
+                        <option value="O-">O-</option>
+                        <option value="B-">B-</option>
+                        <option value="AB-">AB-</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>זמינות:</label>
+                    <select id="availabilityFilter">
+                        <option value="">הכל</option>
+                        <option value="available">זמין</option>
+                        <option value="used">נוצל</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="search-row">
+                <div class="form-group">
+                    <label>מתאריך:</label>
+                    <input type="date" id="dateFrom">
+                </div>
+                
+                <div class="form-group">
+                    <label>עד תאריך:</label>
+                    <input type="date" id="dateTo">
+                </div>
+                
+                <div class="form-group">
+                    <label>מיון לפי:</label>
+                    <select id="sortBy">
+                        <option value="-donation_date">תאריך (חדש לישן)</option>
+                        <option value="donation_date">תאריך (ישן לחדש)</option>
+                        <option value="blood_type">סוג דם</option>
+                        <option value="donor_name">שם תורם</option>
+                        <option value="-id">מזהה (גבוה לנמוך)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-search" onclick="performSearch()">🔍 חפש</button>
+                <button class="btn btn-reset" onclick="resetSearch()">🔄 איפוס</button>
+                <button class="btn btn-export" onclick="exportResults()">📥 ייצא תוצאות</button>
+            </div>
+        </div>
+        
+        <!-- פאנל תוצאות -->
+        <div class="results-panel">
+            <div class="results-header">
+                <h3>תוצאות</h3>
+                <span class="results-count" id="resultsCount">0 תוצאות</span>
+            </div>
+            
+            <div class="table-container">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>מזהה</th>
+                            <th>סוג דם</th>
+                            <th>תאריך תרומה</th>
+                            <th>ת"ז תורם</th>
+                            <th>שם תורם</th>
+                            <th>סטטוס</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <tr><td colspan="6" class="loading">טוען נתונים...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+    
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        
+        // טעינה ראשונית
+        document.addEventListener('DOMContentLoaded', () => {
+            performSearch();
+        });
+        
+        // חיפוש עם Enter
+        document.getElementById('searchQuery').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+        
+        async function performSearch(page = 1) {
+            currentPage = page;
+            
+            const params = new URLSearchParams({
+                search: document.getElementById('searchQuery').value,
+                blood_type: document.getElementById('bloodTypeFilter').value,
+                availability: document.getElementById('availabilityFilter').value,
+                date_from: document.getElementById('dateFrom').value,
+                date_to: document.getElementById('dateTo').value,
+                sort_by: document.getElementById('sortBy').value,
+                page: page,
+                per_page: 20
+            });
+            
+            try {
+                document.getElementById('resultsBody').innerHTML = '<tr><td colspan="6" class="loading">מחפש...</td></tr>';
+                
+                const response = await fetch(`/api/search-donations/?${params}`);
+                const data = await response.json();
+                
+                displayResults(data);
+                updatePagination(data);
+            } catch (error) {
+                document.getElementById('resultsBody').innerHTML = '<tr><td colspan="6" class="no-results">שגיאה בטעינת נתונים</td></tr>';
+            }
+        }
+        
+        function displayResults(data) {
+            const tbody = document.getElementById('resultsBody');
+            document.getElementById('resultsCount').textContent = `${data.total} תוצאות`;
+            
+            if (data.donations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-results">לא נמצאו תוצאות</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            data.donations.forEach(d => {
+                const statusBadge = d.is_available 
+                    ? '<span class="badge badge-available">✓ זמין</span>'
+                    : '<span class="badge badge-used">✗ נוצל</span>';
+                
+                html += `<tr>
+                    <td>${d.id}</td>
+                    <td class="blood-type">${d.blood_type}</td>
+                    <td>${d.donation_date}</td>
+                    <td>${d.donor_id}</td>
+                    <td><strong>${d.donor_name}</strong></td>
+                    <td>${statusBadge}</td>
+                </tr>`;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function updatePagination(data) {
+            totalPages = data.total_pages;
+            const pagination = document.getElementById('pagination');
+            
+            let html = '';
+            html += `<button onclick="performSearch(${currentPage - 1})" ${!data.has_previous ? 'disabled' : ''}>« הקודם</button>`;
+            html += `<span class="page-info">עמוד ${currentPage} מתוך ${totalPages}</span>`;
+            html += `<button onclick="performSearch(${currentPage + 1})" ${!data.has_next ? 'disabled' : ''}>הבא »</button>`;
+            
+            pagination.innerHTML = html;
+        }
+        
+        function resetSearch() {
+            document.getElementById('searchQuery').value = '';
+            document.getElementById('bloodTypeFilter').value = '';
+            document.getElementById('availabilityFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('sortBy').value = '-donation_date';
+            performSearch(1);
+        }
+        
+        function exportResults() {
+            const params = new URLSearchParams({
+                search: document.getElementById('searchQuery').value,
+                blood_type: document.getElementById('bloodTypeFilter').value,
+                availability: document.getElementById('availabilityFilter').value,
+                date_from: document.getElementById('dateFrom').value,
+                date_to: document.getElementById('dateTo').value
+            });
+            
+            window.location.href = `/api/export-search/?${params}`;
+        }
+    </script>
+</body>
+</html>

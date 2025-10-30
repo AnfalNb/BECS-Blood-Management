@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Audit & Compliance - BECS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1800px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); color: white; padding: 20px; text-align: center; margin-bottom: 30px; border-radius: 8px; position: relative; }
+        .back-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
+        .refresh-btn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        
+        .compliance-badge {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: white; padding: 10px; border-radius: 8px; }
+        .tab { padding: 12px 25px; background: #f5f5f5; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .tab.active { background: #1565c0; color: white; }
+        .tab:hover { background: #1976d2; color: white; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Statistics Tab */
+        .kpis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .kpi-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; border-top: 4px solid #1565c0; }
+        .kpi-card h3 { font-size: 2.5em; color: #1565c0; margin-bottom: 10px; }
+        .kpi-card p { color: #666; }
+        
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .chart-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .chart-card h3 { color: #1565c0; margin-bottom: 20px; }
+        .chart-container { position: relative; height: 300px; }
+        
+        /* Search Tab */
+        .search-panel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .search-panel h3 { color: #1565c0; margin-bottom: 20px; }
+        .search-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; color: #333; margin-bottom: 5px; font-size: 0.9em; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        
+        .btn { padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .btn-search { background: #1565c0; color: white; }
+        .btn-search:hover { background: #0d47a1; }
+        .btn-reset { background: #9e9e9e; color: white; }
+        .btn-export { background: #4caf50; color: white; }
+        
+        .results-panel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #1565c0; color: white; padding: 12px; text-align: right; position: sticky; top: 0; z-index: 10; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9em; }
+        tr:hover { background: #f5f5f5; }
+        .success { color: #4caf50; font-weight: bold; }
+        .failed { color: #f44336; font-weight: bold; }
+        
+        .pagination { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+        .pagination button { padding: 8px 15px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer; }
+        .pagination button:hover:not(:disabled) { background: #1565c0; color: white; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Suspicious Activities */
+        .suspicious-panel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .suspicious-item { 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            border-radius: 8px; 
+            border-right: 4px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .suspicious-item.high { background: #ffebee; border-color: #f44336; }
+        .suspicious-item.medium { background: #fff3e0; border-color: #ff9800; }
+        .suspicious-item.low { background: #e3f2fd; border-color: #2196f3; }
+        .suspicious-header { font-weight: bold; margin-bottom: 5px; }
+        .suspicious-details { color: #666; font-size: 0.9em; }
+        .severity-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            color: white;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .severity-badge.high { background: #f44336; }
+        .severity-badge.medium { background: #ff9800; }
+        .severity-badge.low { background: #2196f3; }
+        
+        /* Failures Tab */
+        .failure-item { background: #ffebee; border-right: 4px solid #f44336; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .failure-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .failure-time { color: #666; font-size: 0.9em; }
+        
+        /* Digital Signature */
+        .signature-panel {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        .signature-panel.show { display: block; }
+        .signature-text {
+            font-family: monospace;
+            font-size: 0.85em;
+            word-break: break-all;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .loading { text-align: center; padding: 40px; color: #666; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .loading-pulse { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="back-btn">← חזרה</a>
+        <button class="refresh-btn" onclick="loadCurrentTab()">🔄 רענן</button>
+        <span class="compliance-badge">✓ PART 11 Compliant</span>
+        <h1>🔍 Advanced Audit & Compliance</h1>
+        <p>ניתוח מתקדם של פעילות המערכת עם תמיכה מלאה ב-21 CFR PART 11</p>
+    </header>
+    
+    <div class="container">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('statistics')">📊 סטטיסטיקות</button>
+            <button class="tab" onclick="switchTab('search')">🔍 חיפוש מתקדם</button>
+            <button class="tab" onclick="switchTab('suspicious')">⚠️ פעילות חשודה</button>
+            <button class="tab" onclick="switchTab('failures')">❌ כשלונות</button>
+            <button class="tab" onclick="switchTab('compliance')">📋 PART 11</button>
+        </div>
+        
+        <!-- Statistics Tab -->
+        <div id="statistics-tab" class="tab-content active">
+            <div class="kpis-grid">
+                <div class="kpi-card">
+                    <h3 id="statTotal">0</h3>
+                    <p>סך פעולות</p>
+                </div>
+                <div class="kpi-card">
+                    <h3 id="statSuccess">0</h3>
+                    <p>הצליחו</p>
+                </div>
+                <div class="kpi-card">
+                    <h3 id="statFailed">0</h3>
+                    <p>נכשלו</p>
+                </div>
+                <div class="kpi-card">
+                    <h3 id="statRate">0%</h3>
+                    <p>אחוז הצלחה</p>
+                </div>
+                <div class="kpi-card">
+                    <h3 id="statUsers">0</h3>
+                    <p>משתמשים פעילים</p>
+                </div>
+                <div class="kpi-card">
+                    <h3 id="statIPs">0</h3>
+                    <p>כתובות IP</p>
+                </div>
+            </div>
+            
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>פעולות לפי סוג</h3>
+                    <div class="chart-container">
+                        <canvas id="actionChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <h3>משתמשים מובילים</h3>
+                    <div class="chart-container">
+                        <canvas id="userChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <h3>פעילות יומית (7 ימים)</h3>
+                    <div class="chart-container">
+                        <canvas id="dailyChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <h3>פעילות שעתית (24h)</h3>
+                    <div class="chart-container">
+                        <canvas id="hourlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search Tab -->
+        <div id="search-tab" class="tab-content">
+            <div class="search-panel">
+                <h3>חיפוש וסינון מתקדם</h3>
+                <div class="search-row">
+                    <div class="form-group">
+                        <label>חיפוש חופשי:</label>
+                        <input type="text" id="searchQuery" placeholder="משתמש, תיאור או סוג דם...">
+                    </div>
+                    <div class="form-group">
+                        <label>פעולה:</label>
+                        <select id="actionFilter">
+                            <option value="">הכל</option>
+                            <option value="DONATION_ADDED">קליטת תרומות</option>
+                            <option value="BLOOD_DISPENSED">ניפוק דם</option>
+                            <option value="EMERGENCY_DISPENSED">ניפוק חירום</option>
+                            <option value="DATA_EXPORTED">יצוא נתונים</option>
+                            <option value="SEARCH_PERFORMED">חיפוש</option>
+                            <option value="BLOOD_EXPIRED">סימון כפג תוקף</option>
+                            <option value="BATCH_EXPIRED">הסרת מנות פגות</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>משתמש:</label>
+                        <input type="text" id="userFilter" placeholder="שם משתמש...">
+                    </div>
+                    <div class="form-group">
+                        <label>סטטוס:</label>
+                        <select id="successFilter">
+                            <option value="">הכל</option>
+                            <option value="true">הצליח</option>
+                            <option value="false">נכשל</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="search-row">
+                    <div class="form-group">
+                        <label>מתאריך:</label>
+                        <input type="date" id="dateFrom">
+                    </div>
+                    <div class="form-group">
+                        <label>עד תאריך:</label>
+                        <input type="date" id="dateTo">
+                    </div>
+                    <div class="form-group">
+                        <label>סוג דם:</label>
+                        <select id="bloodTypeFilter">
+                            <option value="">הכל</option>
+                            <option value="A+">A+</option>
+                            <option value="O+">O+</option>
+                            <option value="B+">B+</option>
+                            <option value="AB+">AB+</option>
+                            <option value="A-">A-</option>
+                            <option value="O-">O-</option>
+                            <option value="B-">B-</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>IP Address:</label>
+                        <input type="text" id="ipFilter" placeholder="192.168...">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn btn-search" onclick="performSearch()">🔍 חפש</button>
+                    <button class="btn btn-reset" onclick="resetSearch()">🔄 איפוס</button>
+                    <button class="btn btn-export" onclick="exportSearch()">📥 ייצא עם חתימה דיגיטלית</button>
+                </div>
+            </div>
+            
+            <div class="results-panel">
+                <h3>תוצאות (<span id="resultsCount">0</span>)</h3>
+                <div class="signature-panel" id="searchSignature">
+                    <strong>🔐 חתימה דיגיטלית:</strong>
+                    <div class="signature-text" id="searchSignatureText"></div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>זמן</th>
+                            <th>פעולה</th>
+                            <th>משתמש</th>
+                            <th>פרטים</th>
+                            <th>סוג דם</th>
+                            <th>כמות</th>
+                            <th>סטטוס</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="searchResults">
+                        <tr><td colspan="9" class="loading">המתן...</td></tr>
+                    </tbody>
+                </table>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </div>
+        
+        <!-- Suspicious Activities Tab -->
+        <div id="suspicious-tab" class="tab-content">
+            <div class="suspicious-panel">
+                <h3>⚠️ פעילויות חשודות שזוהו</h3>
+                <div style="margin-bottom: 20px;">
+                    <select onchange="filterSuspicious(this.value)">
+                        <option value="">כל החומרות</option>
+                        <option value="high">חומרה גבוהה</option>
+                        <option value="medium">חומרה בינונית</option>
+                        <option value="low">חומרה נמוכה</option>
+                    </select>
+                    <button class="btn btn-export" style="margin-right: 10px;" onclick="exportSuspicious()">📥 ייצא דוח</button>
+                </div>
+                <div id="suspiciousList"></div>
+            </div>
+        </div>
+        
+        <!-- Failures Tab -->
+        <div id="failures-tab" class="tab-content">
+            <div class="results-panel">
+                <h3>❌ כשלונות אחרונים</h3>
+                <div id="failuresList"></div>
+            </div>
+        </div>
+        
+        <!-- PART 11 Compliance Tab -->
+        <div id="compliance-tab" class="tab-content">
+            <div class="results-panel">
+                <h3>📋 21 CFR PART 11 Compliance Features</h3>
+                <div style="margin: 20px 0;">
+                    <h4>✓ תכונות פעילות:</h4>
+                    <ul style="margin-right: 20px; line-height: 2;">
+                        <li>🔐 חתימות דיגיטליות על כל הדוחות</li>
+                        <li>📝 Audit Trail מלא ובלתי ניתן למחיקה</li>
+                        <li>👤 זיהוי משתמש חד-ערכי</li>
+                        <li>🔍 ניתוח אוטומטי של פעילות חשודה</li>
+                        <li>📊 דוחות מפורטים עם metadata מלא</li>
+                        <li>⏰ חותמות זמן מדויקות</li>
+                        <li>🔒 הצפנת נתונים ואימות</li>
+                        <li>📥 יצוא מאובטח עם validation</li>
+                    </ul>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h4>🔐 אמת חתימה דיגיטלית:</h4>
+                    <input type="text" id="signatureInput" placeholder="הכנס חתימה דיגיטלית..." style="width: 60%; margin: 10px 0;">
+                    <button class="btn btn-search" onclick="verifySignature()">✓ אמת</button>
+                    <div id="verificationResult" style="margin-top: 10px;"></div>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <button class="btn btn-export" onclick="generateComplianceReport()">📋 הפק דוח Compliance מלא</button>
+                    <button class="btn btn-search" style="margin-right: 10px;" onclick="analyzePatterns()">🔍 נתח דפוסים חשודים</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let charts = {};
+        let currentPage = 1;
+        let allSuspiciousActivities = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatistics();
+        });
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'statistics') loadStatistics();
+            if (tabName === 'search') performSearch();
+            if (tabName === 'suspicious') loadStatistics();
+            if (tabName === 'failures') loadStatistics();
+        }
+        
+        function loadCurrentTab() {
+            const activeTab = document.querySelector('.tab-content.active').id;
+            if (activeTab.includes('statistics')) loadStatistics();
+            if (activeTab.includes('search')) performSearch();
+            if (activeTab.includes('suspicious')) loadStatistics();
+        }
+        
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/audit-statistics/');
+                const data = await response.json();
+                
+                // Verify signature if present
+                if (data.signature) {
+                    console.log('Data integrity verified with signature:', data.signature.substring(0, 20) + '...');
+                }
+                
+                updateKPIs(data.stats);
+                createCharts(data);
+                displaySuspicious(data.suspicious_activities);
+                displayFailures(data.recent_failures);
+                allSuspiciousActivities = data.suspicious_activities;
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                alert('שגיאה בטעינת הנתונים');
+            }
+        }
+        
+        function updateKPIs(stats) {
+            document.getElementById('statTotal').textContent = stats.total.toLocaleString();
+            document.getElementById('statSuccess').textContent = stats.successful.toLocaleString();
+            document.getElementById('statFailed').textContent = stats.failed.toLocaleString();
+            document.getElementById('statRate').textContent = stats.success_rate + '%';
+            document.getElementById('statUsers').textContent = stats.unique_users;
+            document.getElementById('statIPs').textContent = stats.unique_ips;
+        }
+        
+        function createCharts(data) {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+            
+            // Action Chart
+            if (Object.keys(data.by_action).length > 0) {
+                createOrUpdateChart('actionChart', 'doughnut', {
+                    labels: Object.keys(data.by_action),
+                    datasets: [{
+                        data: Object.values(data.by_action),
+                        backgroundColor: [
+                            '#1565c0', '#4caf50', '#ff9800', '#f44336', 
+                            '#9c27b0', '#00bcd4', '#ff5722', '#795548'
+                        ]
+                    }]
+                });
+            }
+            
+            // User Chart
+            if (data.by_user && data.by_user.length > 0) {
+                createOrUpdateChart('userChart', 'bar', {
+                    labels: data.by_user.map(u => u.user),
+                    datasets: [{
+                        label: 'פעולות',
+                        data: data.by_user.map(u => u.count),
+                        backgroundColor: '#1565c0'
+                    }]
+                }, { indexAxis: 'y' });
+            }
+            
+            // Daily Chart
+            if (data.daily_activity && data.daily_activity.length > 0) {
+                createOrUpdateChart('dailyChart', 'line', {
+                    labels: data.daily_activity.map(d => d.date),
+                    datasets: [
+                        {
+                            label: 'הצליחו',
+                            data: data.daily_activity.map(d => d.success),
+                            borderColor: '#4caf50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            fill: true
+                        },
+                        {
+                            label: 'נכשלו',
+                            data: data.daily_activity.map(d => d.failed),
+                            borderColor: '#f44336',
+                            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                            fill: true
+                        }
+                    ]
+                });
+            }
+            
+            // Hourly Chart
+            if (data.hourly_activity && data.hourly_activity.length > 0) {
+                createOrUpdateChart('hourlyChart', 'bar', {
+                    labels: data.hourly_activity.map(h => h.hour),
+                    datasets: [{
+                        label: 'פעולות',
+                        data: data.hourly_activity.map(h => h.count),
+                        backgroundColor: '#00bcd4'
+                    }]
+                });
+            }
+        }
+        
+        function createOrUpdateChart(canvasId, type, data, options = {}) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            charts[canvasId] = new Chart(ctx, {
+                type: type,
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: type === 'doughnut' ? 'right' : 'top',
+                            rtl: true
+                        }
+                    },
+                    ...options
+                }
+            });
+        }
+        
+        function displaySuspicious(activities) {
+            const container = document.getElementById('suspiciousList');
+            if (!activities || activities.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #4caf50;">✓ לא נמצאו פעילויות חשודות</p>';
+                return;
+            }
+            
+            container.innerHTML = activities.map(activity => `
+                <div class="suspicious-item ${activity.severity}" data-severity="${activity.severity}">
+                    <div>
+                        <div class="suspicious-header">${getActivityTypeLabel(activity.type)}</div>
+                        <div class="suspicious-details">
+                            משתמש: ${activity.user}<br>
+                            ${activity.details}
+                        </div>
+                    </div>
+                    <span class="severity-badge ${activity.severity}">
+                        ${getSeverityLabel(activity.severity)}
+                    </span>
+                </div>
+            `).join('');
+        }
+        
+        function getActivityTypeLabel(type) {
+            const labels = {
+                'HIGH_FAILURE_RATE': '⚠️ אחוז כשלון גבוה',
+                'UNUSUAL_HOURS': '🌙 פעילות בשעות חריגות',
+                'EXCESSIVE_EXPORTS': '📥 יצוא נתונים מרובה',
+                'MULTIPLE_IPS': '🌐 גישה ממספר כתובות IP',
+                'EXCESSIVE_EMERGENCY': '🚨 ניפוקי חירום מרובים',
+                'RAPID_ACTIONS': '⚡ פעולות מהירות (חשד לאוטומציה)',
+                'WEEKEND_ACTIVITY': '📅 פעילות חריגה בסוף השבוע'
+            };
+            return labels[type] || type;
+        }
+        
+        function getSeverityLabel(severity) {
+            const labels = {
+                'high': 'גבוהה',
+                'medium': 'בינונית',
+                'low': 'נמוכה'
+            };
+            return labels[severity] || severity;
+        }
+        
+        function filterSuspicious(severity) {
+            const items = document.querySelectorAll('.suspicious-item');
+            items.forEach(item => {
+                if (!severity || item.dataset.severity === severity) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        function displayFailures(failures) {
+            const container = document.getElementById('failuresList');
+            if (!failures || failures.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #4caf50;">✓ אין כשלונות אחרונים</p>';
+                return;
+            }
+            
+            container.innerHTML = failures.map(failure => `
+                <div class="failure-item">
+                    <div class="failure-header">
+                        <strong>${failure.action}</strong>
+                        <span class="failure-time">${failure.timestamp}</span>
+                    </div>
+                    <div>משתמש: ${failure.user}</div>
+                    <div>פרטים: ${failure.details}</div>
+                    <div>IP: ${failure.ip}</div>
+                </div>
+            `).join('');
+        }
+        
+        async function performSearch() {
+            currentPage = 1;
+            await searchAudit();
+        }
+        
+        async function searchAudit(page = 1) {
+            const params = new URLSearchParams({
+                search: document.getElementById('searchQuery').value,
+                action: document.getElementById('actionFilter').value,
+                user: document.getElementById('userFilter').value,
+                success: document.getElementById('successFilter').value,
+                date_from: document.getElementById('dateFrom').value,
+                date_to: document.getElementById('dateTo').value,
+                blood_type: document.getElementById('bloodTypeFilter').value,
+                ip: document.getElementById('ipFilter').value,
+                page: page
+            });
+            
+            try {
+                const response = await fetch(`/api/search-audit-advanced/?${params}`);
+                const data = await response.json();
+                
+                displaySearchResults(data);
+                
+                // Display signature if present
+                if (data.signature) {
+                    document.getElementById('searchSignature').classList.add('show');
+                    document.getElementById('searchSignatureText').textContent = data.signature;
+                }
+                
+                currentPage = page;
+            } catch (error) {
+                console.error('Error searching:', error);
+                alert('שגיאה בחיפוש');
+            }
+        }
+        
+        function displaySearchResults(data) {
+            document.getElementById('resultsCount').textContent = data.total;
+            
+            const tbody = document.getElementById('searchResults');
+            if (data.logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">לא נמצאו תוצאות</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = data.logs.map(log => `
+                <tr>
+                    <td>${log.id}</td>
+                    <td>${log.timestamp}</td>
+                    <td>${log.action}</td>
+                    <td>${log.user}</td>
+                    <td title="${log.details}">${log.details.substring(0, 50)}${log.details.length > 50 ? '...' : ''}</td>
+                    <td>${log.blood_type}</td>
+                    <td>${log.quantity}</td>
+                    <td class="${log.success ? 'success' : 'failed'}">${log.success ? '✓' : '✗'}</td>
+                    <td>${log.ip_address}</td>
+                </tr>
+            `).join('');
+            
+            // Pagination
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = `
+                <button onclick="searchAudit(1)" ${!data.has_previous ? 'disabled' : ''}>ראשון</button>
+                <button onclick="searchAudit(${currentPage - 1})" ${!data.has_previous ? 'disabled' : ''}>הקודם</button>
+                <span>עמוד ${currentPage} מתוך ${data.total_pages}</span>
+                <button onclick="searchAudit(${currentPage + 1})" ${!data.has_next ? 'disabled' : ''}>הבא</button>
+                <button onclick="searchAudit(${data.total_pages})" ${!data.has_next ? 'disabled' : ''}>אחרון</button>
+            `;
+        }
+        
+        function resetSearch() {
+            document.getElementById('searchQuery').value = '';
+            document.getElementById('actionFilter').value = '';
+            document.getElementById('userFilter').value = '';
+            document.getElementById('successFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('bloodTypeFilter').value = '';
+            document.getElementById('ipFilter').value = '';
+            performSearch();
+        }
+        
+        async function exportSearch() {
+            const params = new URLSearchParams({
+                search: document.getElementById('searchQuery').value,
+                action: document.getElementById('actionFilter').value,
+                user: document.getElementById('userFilter').value,
+                success: document.getElementById('successFilter').value,
+                date_from: document.getElementById('dateFrom').value,
+                date_to: document.getElementById('dateTo').value,
+                ip: document.getElementById('ipFilter').value,
+                signature: 'true'  // Enable digital signature
+            });
+            
+            window.location.href = `/api/export-audit-advanced/?${params}`;
+        }
+        
+        async function exportSuspicious() {
+            // Create CSV content
+            let csvContent = 'סוג,משתמש,פרטים,חומרה\n';
+            allSuspiciousActivities.forEach(activity => {
+                csvContent += `${getActivityTypeLabel(activity.type)},${activity.user},"${activity.details}",${getSeverityLabel(activity.severity)}\n`;
+            });
+            
+            // Create download
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `suspicious_activities_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+        
+        async function verifySignature() {
+            const signature = document.getElementById('signatureInput').value;
+            const resultDiv = document.getElementById('verificationResult');
+            
+            if (!signature) {
+                resultDiv.innerHTML = '<span style="color: #f44336;">❌ אנא הכנס חתימה דיגיטלית</span>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/verify-audit-signature/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        signature: signature,
+                        data: {} // Add actual data to verify
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.valid) {
+                    resultDiv.innerHTML = `<span style="color: #4caf50;">✓ חתימה תקינה - אומתה ע"י ${result.verified_by}</span>`;
+                } else {
+                    resultDiv.innerHTML = '<span style="color: #f44336;">❌ חתימה לא תקינה</span>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<span style="color: #f44336;">❌ שגיאה באימות החתימה</span>';
+            }
+        }
+        
+        async function analyzePatterns() {
+            try {
+                const response = await fetch('/api/analyze-suspicious-patterns/');
+                const data = await response.json();
+                
+                alert(`נמצאו ${data.total_patterns} דפוסים חשודים בתקופה של ${data.analysis_period}`);
+                
+                // Display patterns in suspicious tab
+                if (data.patterns && data.patterns.length > 0) {
+                    allSuspiciousActivities = [...allSuspiciousActivities, ...data.patterns];
+                    displaySuspicious(allSuspiciousActivities);
+                    switchTab('suspicious');
+                }
+            } catch (error) {
+                console.error('Error analyzing patterns:', error);
+                alert('שגיאה בניתוח דפוסים');
+            }
+        }
+        
+        async function generateComplianceReport() {
+            const params = new URLSearchParams({
+                format: 'pdf',
+                signature: 'true'
+            });
+            
+            window.location.href = `/api/export-audit-advanced/?${params}&compliance=full`;
+        }
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

@@ -105,17 +105,17 @@
     <div class="container">
         <div class="welcome">
             <h2>ברוך הבא, {{ user.get_full_name|default:user.username }}</h2>
-            <p>
+            <!-- <p>
                 כאדמין, יש לך גישה מלאה לכל המערכת. אתה יכול לנהל משתמשים, לצפות בכל הנתונים כולל פרטים מזהים, 
                 לבצע כל פעולה במערכת ולצפות ב-Audit Trail המלא.
-            </p>
+            </p> -->
         </div>
         
         <div class="stats">
-            <div class="stat-card">
+            <!-- <div class="stat-card">
                 <h3 id="totalDonations">0</h3>
                 <p>תרומות במערכת</p>
-            </div>
+            </div> -->
             <div class="stat-card">
                 <h3 id="availableUnits">0</h3>
                 <p>מנות זמינות</p>
@@ -168,7 +168,41 @@
                 <h2>נתונים למחקר</h2>
                 <p>צפייה בנתונים מוסווים</p>
             </div>
+
+            <div class="menu-item" onclick="location.href='/donations-list/'">
+                <div class="icon">📋</div>
+                <h2>רשימת תרומות</h2>
+                <p>חיפוש וסינון מתקדם</p>
+            </div>
+
+            <div class="menu-item" onclick="location.href='/expiration-tracking/'">
+                <div class="icon">⏰</div>
+                <h2>מעקב תוקף</h2>
+                <p>ניהול תפוגת מנות דם</p>
+            </div>
+
+            <div class="menu-item" onclick="location.href='/dashboard/'">
+                <div class="icon">📊</div>
+                <h2>Dashboard & Analytics</h2>
+                <p>לוח בקרה ויזואלי</p>
+            </div>
+
+            <div class="menu-item" onclick="location.href='/reports/'">
+                <div class="icon">📑</div>
+                <h2>מחולל דוחות</h2>
+                <p>דוחות מותאמים אישית</p>
+            </div>
+            
+
+
+            <div class="menu-item" onclick="location.href='/chatbot/'">
+                <div class="icon">🤖</div>
+                <h2>עוזר AI</h2>
+                <p>סיוע חכם למערכת</p>
+            </div>
         </div>
+
+        
     </div>
     
     <script>
